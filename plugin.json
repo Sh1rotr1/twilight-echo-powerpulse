@@ -1,0 +1,14 @@
+{
+  "id": "com.sh1rotr1.powerpulse",
+  "name": "PowerPulse 设备电量",
+  "version": "0.1.0",
+  "description": "读取本机电池、Razer 2.4G 无线外设与蓝牙设备的电量；侧边栏卡片、设置面板与播放栏按钮同步显示设备电量。",
+  "author": "sh1rotr1",
+  "license": "MIT",
+  "type": ["tool", "ui"],
+  "main": "index.mjs",
+  "engines": { "twilightEcho": ">=1.3.0" },
+  "apiVersion": 3,
+  "permissions": ["settings", "ui:inject"],
+  "repository": "https://github.com/Sh1rotr1/twilight-echo-powerpulse"
+}

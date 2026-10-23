@@ -1,0 +1,22 @@
+{
+  "name": "twilight-echo-powerpulse",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Twilight Echo plugin: system, Razer 2.4G and Bluetooth battery monitor",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "build:tep": "node scripts/pack.mjs",
+    "probe": "node test/integration.mjs",
+    "host:install": "node host/install-sidebar.mjs",
+    "host:restore": "node host/install-sidebar.mjs --restore",
+    "host:dry-run": "node host/install-sidebar.mjs --dry-run"
+  },
+  "devDependencies": {
+    "@electron/asar": "^4.3.1"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

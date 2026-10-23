@@ -1,0 +1,37 @@
+name: build-tep
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Px-asen/Twilight_Echo
+          ref: Pxasen
+          path: .twilight-echo
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install packer dependency
+        run: npm install
+
+      - name: Pack with the official Twilight Echo CLI
+        env:
+          TE_CLI: .twilight-echo/packages/create-twilight-plugin/bin/create-twilight-plugin.cjs
+        run: node scripts/pack.mjs
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: te-powerpulse
+          path: dist/*.tep
+          if-no-files-found: error

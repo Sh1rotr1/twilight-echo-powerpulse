@@ -1,0 +1,81 @@
+{
+  "plugin": {
+    "id": "com.sh1rotr1.powerpulse",
+    "version": "0.1.0",
+    "apiVersion": 3
+  },
+  "host": {
+    "tested": ["1.3.1-preview"],
+    "requestedRange": ">=1.3.0",
+    "platform": "win32"
+  },
+  "permissions": ["settings", "ui:inject"],
+  "surfaces": {
+    "settingsPanel": { "id": "powerpulse-settings", "command": "powerpulse.overview" },
+    "playerBarButton": { "id": "powerpulse-bar", "command": "powerpulse.toast" },
+    "sidebarWidget": {
+      "id": "te-powerpulse-sidebar",
+      "hostPatch": true,
+      "files": ["out/renderer/index.html", "out/renderer/powerpulse-sidebar.js"],
+      "anchor": ".side-menu > #te-powerpulse-sidebar (before .menu-bottom)"
+    }
+  },
+  "notAvailableInHost": ["titleBar", "desktopLyrics", "miniPlayer"],
+  "dataSources": [
+    {
+      "id": "system-battery",
+      "api": "Win32_Battery + root\\wmi BatteryStatus",
+      "verified": true
+    },
+    {
+      "id": "bluetooth-battery",
+      "api": "SetupAPI / DEVPKEY_Bluetooth_Battery {104EA319-6EE2-4701-BD47-8DDBF425BBE5} 2",
+      "verified": "reader runs in ~7 ms; no local device currently reports a level"
+    },
+    {
+      "id": "razer-wireless-battery",
+      "api": "HID feature report 91 bytes, class 0x07 id 0x80 / 0x84",
+      "verified": "Razer Viper V4 Pro (1532:00E6) returns level and charging state"
+    }
+  ],
+  "detectedDevices": [
+    {
+      "name": "Razer Viper V4 Pro",
+      "ids": "1532:00E6",
+      "reader": "razer",
+      "result": "verified (level + charging)"
+    },
+    {
+      "name": "Razer BlackWidow V4 Tenkeyless HyperSpeed",
+      "ids": "1532:02D5 (wired) / 1532:02D7 (2.4G) / BLE 02D6",
+      "reader": "razer / bluetooth",
+      "result": "wired mode exposes only telemetry; battery needs 2.4G receiver or Bluetooth"
+    },
+    {
+      "name": "Xbox Wireless Controller",
+      "ids": "045E:0B12 / BTHLE",
+      "reader": "bluetooth",
+      "result": "connected via USB, no GATT battery level"
+    },
+    {
+      "name": "UGREEN USB MIC-CM379",
+      "ids": "2B89:D82F",
+      "reader": "none",
+      "result": "USB audio/mic, no battery"
+    },
+    {
+      "name": "MOONDROP DAWN PRO2 (USB audio endpoint)",
+      "ids": "USB audio",
+      "reader": "none",
+      "result": "wired DAC, no battery"
+    }
+  ],
+  "notes": [
+    "Host UI contributions are limited to sidebarPage, playerBarButton, settingsPanel, localSidebarItem, streamingHome.",
+    "Plugin host UI command timeout is 5s; the snapshot command only reads the cache and waits at most 3s.",
+    "Host executeUiCommand dispatches only commands declared by a UI contribution, so the settings form reuses powerpulse.overview for submit.",
+    "In 1.3.1 ui.notify routes info/warning notices to the task/notification center; only error or action notices become floating toasts.",
+    "The plugin never writes outside context.storagePath."
+  ],
+  "checkedAt": "2026-10-20"
+}
