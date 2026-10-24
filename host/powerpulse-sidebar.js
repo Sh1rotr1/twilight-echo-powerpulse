@@ -130,7 +130,7 @@ function render(payload) {
 }
 
 async function refresh() {
-  if (refreshing) return
+  if (refreshing || !card || !card.isConnected || !shadow) return
   const api = window.api?.extensions
   if (!api || typeof api.executeCommand !== 'function') return
   refreshing = true
@@ -211,7 +211,15 @@ function ensureCard() {
 function boot() {
   if (bootObserver) return
   bootObserver = new MutationObserver(() => {
-    if (!card || !card.isConnected) ensureCard()
+    if (card && !card.isConnected) {
+      if (timer) clearInterval(timer)
+      timer = null
+      card = null
+      shadow = null
+      listEl = null
+      metaEl = null
+    }
+    if (!document.querySelector('#te-powerpulse-sidebar')) ensureCard()
   })
   bootObserver.observe(document.documentElement, { childList: true, subtree: true })
   ensureCard()
