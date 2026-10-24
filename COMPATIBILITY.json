@@ -72,7 +72,7 @@
   ],
   "notes": [
     "Host UI contributions are limited to sidebarPage, playerBarButton, settingsPanel, localSidebarItem, streamingHome.",
-    "Plugin host UI command timeout is 5s; the snapshot command only reads the cache and waits at most 3s.",
+    "Plugin host UI command timeout is 5s; the snapshot command only reads the cache and waits at most 4.2s.",
     "Host executeUiCommand dispatches only commands declared by a UI contribution, so the settings form reuses powerpulse.overview for submit.",
     "In 1.3.1 ui.notify routes info/warning notices to the task/notification center; only error or action notices become floating toasts.",
     "The plugin never writes outside context.storagePath."

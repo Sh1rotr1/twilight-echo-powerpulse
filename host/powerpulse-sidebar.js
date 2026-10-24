@@ -92,7 +92,11 @@ function render(payload) {
   if (!devices.length) {
     const empty = document.createElement('div')
     empty.className = 'empty'
-    empty.textContent = payload?.unavailable ? '插件未启用' : '未检测到带电量设备'
+    empty.textContent = payload?.unavailable
+      ? '插件未启用'
+      : payload?.error
+        ? String(payload.error).slice(0, 80)
+        : '未检测到带电量设备'
     listEl.appendChild(empty)
     return
   }
