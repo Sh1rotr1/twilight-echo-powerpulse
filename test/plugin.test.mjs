@@ -117,20 +117,10 @@ test('overview returns a host settings form with a summary', async () => {
   const form = await commands.get('powerpulse.overview')({ source: 'settingsPanel' })
   assert.equal(form.kind, 'settings-form')
   assert.equal(form.submitCommand, 'powerpulse.overview')
-  assert.equal(form.fields.length, 4)
+  assert.equal(form.fields.length, 3)
   assert.match(form.notice, /本机电池 92%/)
   assert.match(form.notice, /DAWN PRO2 12%/)
-})
-
-test('list returns a readable device table', async () => {
-  const { context, commands } = makeContext()
-  const { factory } = makeFactory()
-  const plugin = createPowerPulsePlugin({ createCollector: factory, scriptPath: 'unused', platform: 'win32' })
-  await plugin.activate(context)
-
-  const text = await commands.get('powerpulse.list')()
-  assert.match(text, /PowerPulse 设备电量/)
-  assert.match(text, /共 2 个设备/)
+  assert.match(form.notice, /更新于/)
 })
 
 test('toast uses warning kind when a device is low', async () => {
@@ -153,8 +143,7 @@ test('save clamps values, persists config and restarts interval', async () => {
   const result = await commands.get('powerpulse.overview')({
     intervalSec: '300',
     showSystem: 'off',
-    lowThreshold: '150',
-    toastSummary: 'off'
+    lowThreshold: '150'
   })
 
   assert.equal(settings.get('config').intervalSec, 300)

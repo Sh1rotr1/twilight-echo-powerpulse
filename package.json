@@ -1,6 +1,6 @@
 {
   "name": "twilight-echo-powerpulse",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "Twilight Echo plugin: system, Razer 2.4G and Bluetooth battery monitor",

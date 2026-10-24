@@ -41,15 +41,12 @@ await activate(context)
 console.log(JSON.stringify({ contributions: contributions.map((c) => `${c.kind}:${c.command}`) }, null, 2))
 
 const form = await commands.get('powerpulse.overview')({ source: 'settingsPanel', panelId: 'powerpulse-settings' })
-console.log(JSON.stringify({ formKind: form.kind, submit: form.submitCommand, notice: form.notice, fields: form.fields.map((f) => f.key) }, null, 2))
-
-const list = await commands.get('powerpulse.list')({ source: 'sidebarPage', pageId: 'powerpulse-page' })
-console.log(list)
+console.log(JSON.stringify({ formKind: form.kind, submit: form.submitCommand, notice: form.notice, fields: form.fields.map((f) => f.key), devices: form.devices }, null, 2))
 
 await commands.get('powerpulse.toast')({ id: 'track', title: 'demo' })
 console.log(JSON.stringify({ notice: notices.at(-1) }, null, 2))
 
-const saved = await commands.get('powerpulse.overview')({ intervalSec: '60', showSystem: 'on', lowThreshold: '25', toastSummary: 'on' })
+const saved = await commands.get('powerpulse.overview')({ intervalSec: '60', showSystem: 'on', lowThreshold: '25' })
 console.log(JSON.stringify({ saved: settings.get('config'), notice: saved.form.notice }, null, 2))
 
 await deactivate()

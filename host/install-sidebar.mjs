@@ -82,9 +82,14 @@ try {
     process.exit(0)
   }
 
-  if (!fs.existsSync(BACKUP_PATH)) {
+  if (!alreadyPatched) {
+    // The app may have been updated since the previous backup. Refresh it so
+    // --restore returns the current unpatched package, not an older version.
     fs.copyFileSync(ASAR_PATH, BACKUP_PATH)
-    console.log(`[PowerPulse] 已备份原包：${BACKUP_PATH}`)
+    console.log(`[PowerPulse] 已备份当前原包：${BACKUP_PATH}`)
+  } else if (!fs.existsSync(BACKUP_PATH)) {
+    fs.copyFileSync(ASAR_PATH, BACKUP_PATH)
+    console.log(`[PowerPulse] 已备份当前包：${BACKUP_PATH}`)
   }
 
   try {

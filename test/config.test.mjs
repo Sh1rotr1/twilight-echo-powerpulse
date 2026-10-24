@@ -14,7 +14,6 @@ test('defaults stay stable', () => {
   assert.equal(DEFAULT_CONFIG.intervalSec, 10)
   assert.equal(DEFAULT_CONFIG.lowThreshold, 20)
   assert.equal(DEFAULT_CONFIG.showSystem, true)
-  assert.equal(DEFAULT_CONFIG.toastSummary, true)
   assert.equal(DEFAULT_CONFIG.schemaVersion, 1)
 })
 
@@ -33,13 +32,12 @@ test('threshold clamps to 1..100', () => {
 })
 
 test('normalizeConfig accepts form values and booleans', () => {
-  const normalized = normalizeConfig({ intervalSec: '30', showSystem: 'off', lowThreshold: '15', toastSummary: 'off' })
+  const normalized = normalizeConfig({ intervalSec: '30', showSystem: 'off', lowThreshold: '15' })
   assert.deepEqual(normalized, {
     schemaVersion: 1,
     intervalSec: 30,
     showSystem: false,
-    lowThreshold: 15,
-    toastSummary: false
+    lowThreshold: 15
   })
 })
 
@@ -58,7 +56,7 @@ test('migrateConfig survives garbage', () => {
 
 test('form fields use host-supported types', () => {
   const fields = buildConfigFields(normalizeConfig({}))
-  assert.equal(fields.length, 4)
+  assert.equal(fields.length, 3)
   for (const field of fields) {
     assert.ok(['text', 'select', 'password', 'url'].includes(field.type))
     assert.ok(field.label.length <= 100)
@@ -69,7 +67,7 @@ test('form fields use host-supported types', () => {
 })
 
 test('readConfigFormValues keeps current values for missing fields', () => {
-  const current = normalizeConfig({ intervalSec: 10, showSystem: true, lowThreshold: 20, toastSummary: true })
+  const current = normalizeConfig({ intervalSec: 10, showSystem: true, lowThreshold: 20 })
   const next = readConfigFormValues({ intervalSec: '60' }, current)
   assert.equal(next.intervalSec, 60)
   assert.equal(next.showSystem, true)

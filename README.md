@@ -3,7 +3,7 @@
 Twilight Echo 插件：读取本机电池、Razer 2.4G 无线外设与蓝牙设备的电量，只显示当前有电量数值的设备。
 
 - 插件 ID：`com.sh1rotr1.powerpulse`
-- 版本：`0.1.0`
+- 版本：`0.1.1`
 - 宿主 API：`apiVersion 3`
 - 权限：`settings`、`ui:inject`
 - 仓库：https://github.com/Sh1rotr1/twilight-echo-powerpulse
@@ -89,7 +89,7 @@ node host/install-sidebar.mjs --restore
 
 ## 安装（本地）
 
-1. 在扩展中心 → 从文件安装，选择 Release 里的 `com.sh1rotr1.powerpulse-0.1.0.tep`。
+1. 在扩展中心 → 从文件安装，选择 Release 里的 `com.sh1rotr1.powerpulse-0.1.1.tep`。
 2. 启用插件。
 3. 侧边栏卡片是宿主补丁，按上一节的 `host/` 步骤安装；不安装补丁时仍可使用设置面板与播放栏按钮。
 4. 设置 → 插件设置 → PowerPulse 设备电量。
