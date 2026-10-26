@@ -10,6 +10,7 @@
   let loading = false
   let timer = null
   let retryTimer = null
+  let readyTimer = null
   const pending = new Map()
 
   function postReady() {
@@ -139,6 +140,10 @@
     const next = event.ports?.[0]
     if (!next) return
     port = next
+    if (readyTimer) {
+      clearInterval(readyTimer)
+      readyTimer = null
+    }
     port.onmessage = ({ data }) => {
       const item = data?.id ? pending.get(data.id) : null
       if (!item) return
@@ -160,9 +165,7 @@
   })
 
   postReady()
-  for (const delay of [600, 1600, 3200]) {
-    setTimeout(() => {
-      if (!port) postReady()
-    }, delay)
-  }
+  readyTimer = setInterval(() => {
+    if (!port) postReady()
+  }, 1500)
 })()
