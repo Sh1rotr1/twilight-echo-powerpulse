@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="stylesheet" href="./panel.css" />
+    <title>设备电量</title>
+  </head>
+  <body>
+    <main class="panel">
+      <header class="head">
+        <div class="head-copy">
+          <p id="summary" class="summary">正在连接…</p>
+        </div>
+        <button id="refresh" class="refresh" type="button" title="立即刷新">刷新</button>
+      </header>
+      <div id="list" class="list" aria-live="polite">
+        <div class="empty">正在读取设备电量…</div>
+      </div>
+      <footer id="meta" class="meta"></footer>
+    </main>
+    <script src="./panel.js"></script>
+  </body>
+</html>

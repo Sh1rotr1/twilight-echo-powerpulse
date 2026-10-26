@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 — 2026-10-26
+
+- 适配 Twilight Echo 1.4.0-perview：插件 API v4。
+- 标题栏新增“设备电量”按钮，点击打开原生插件面板。
+- 面板通过 `contributes.experiences`（bridgeVersion 2，launch panel）和 `plugin.request` 读取 `powerpulse.overview`。
+- 面板每 5 秒刷新，显示设备、进度条、百分比、充电标记和低电量红色。
+- 不再需要修改 `app.asar`；`host/` 降级为 1.3.x 旧集成参考。
+- 新增 `network` 权限，用于体验桥的 `plugin.request`。
+- 设置面板和播放栏按钮保留。
+
 ## 0.1.1 — 2026-10-24
 
 - 侧边栏卡片固定每 5 秒检查插件状态与设置，保存设置后 5 秒内同步。

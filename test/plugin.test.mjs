@@ -99,10 +99,10 @@ test('activate registers three surfaces and starts the collector', async () => {
 
   await plugin.activate(context)
 
-  assert.equal(contributions.length, 2)
+  assert.equal(contributions.length, 3)
   assert.deepEqual(
     contributions.map((item) => item.kind).sort(),
-    ['playerBarButton', 'settingsPanel']
+    ['playerBarButton', 'settingsPanel', 'titleBarButton']
   )
   assert.equal(created.length, 1)
   assert.equal(created[0].state.started, true)

@@ -8,11 +8,13 @@ Twilight Echo 升级后按下面顺序检查。
 Get-Item "D:\TwilightEcho\resources\app.asar" | Select-Object Length,LastWriteTime
 ```
 
-确认宿主仍支持 `apiVersion 3`，并且 `normalizeUiContribution` 的 kind 白名单没有变化：
+确认宿主支持 `apiVersion 4`，并且 UI kind 白名单包含：
 
 ```text
-sidebarPage / playerBarButton / settingsPanel / localSidebarItem / streamingHome
+sidebarPage / playerBarButton / settingsPanel / localSidebarItem / streamingHome / titleBarButton
 ```
+
+1.4.0 的 titleBarButton 还需要 `contributes.experiences`（`bridgeVersion: 2`、`launch: "panel"`）；`plugin.request` 需要 `network` 权限。
 
 ## 2. 命令返回结构
 
@@ -31,7 +33,8 @@ sidebarPage / playerBarButton / settingsPanel / localSidebarItem / streamingHome
 | 扩展点 | 变化风险 | 检查 |
 |---|---|---|
 | `settingsPanel` | 表单字段类型、notice 长度 | `normalizePluginSettingsForm` |
-| `sidebarPage` | 命令结果仍按文本渲染 | `PluginExtensionPage-*.js` |
+| `titleBarButton` | 需要 panel experience 才打开 | `App-*.js` 的 `pluginTitleButtons` |
+| experience panel | `plugin.request` → `experience.onRequest` | `experienceBridge-*.js` |
 | `playerBarButton` | 点击执行命令、参数为当前曲目 | `PlayerBar-*.js` |
 
 ## 4. 系统数据源
@@ -42,7 +45,9 @@ sidebarPage / playerBarButton / settingsPanel / localSidebarItem / streamingHome
 
 ## 5. 标题栏 / 歌词 / 迷你播放器
 
-宿主当前没有这三个位置的插件挂载点。若未来版本新增（例如 `ui.register` 增加 `titlebarItem` 或通用 slot），优先使用宿主扩展点，不要改 `app.asar`。
+1.4.0 新增 `titleBarButton` + panel experience，已用于标题栏设备面板。
+
+歌词和迷你播放器仍没有插件 UI 挂载点；若未来新增，优先使用宿主扩展点，不要改 `app.asar`。
 
 ## 6. 验证
 
@@ -52,7 +57,7 @@ node test\integration.mjs
 node test\loop-check.mjs
 ```
 
-然后在设置页、侧边栏、播放栏各看一次；低电量设备应带 `⚠` 前缀。
+然后在标题栏面板、设置页、播放栏各看一次；低电量设备的百分比和进度条应变红。
 
 ## 7. 元数据
 

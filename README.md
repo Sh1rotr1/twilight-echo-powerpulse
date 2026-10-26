@@ -1,132 +1,123 @@
 # PowerPulse 设备电量
 
-Twilight Echo 插件：读取本机电池、Razer 2.4G 无线外设与蓝牙设备的电量，只显示当前有电量数值的设备。
+Twilight Echo 插件：读取本机电池、Razer 2.4G 无线外设与蓝牙设备的电量。
 
 - 插件 ID：`com.sh1rotr1.powerpulse`
-- 版本：`0.1.1`
-- 宿主 API：`apiVersion 3`
-- 权限：`settings`、`ui:inject`
+- 版本：`0.2.0`
+- 宿主：Twilight Echo `>=1.4.0-perview`
+- 插件 API：`apiVersion 4`
+- 权限：`settings`、`ui:inject`、`network`
 - 仓库：https://github.com/Sh1rotr1/twilight-echo-powerpulse
 
-## 支持设备（本机实测）
+## 1.4.0 适配
 
-| 设备 | VID:PID | 读取方式 | 状态 |
-|---|---|---|---|
-| Razer Viper V4 Pro | `1532:00E6` | Razer 91 字节 HID Feature Report（class `0x07` / id `0x80`、`0x84`） | 已验证，电量与充电状态正常 |
-| Razer BlackWidow V4 Tenkeyless HyperSpeed | `1532:02D7`（2.4G） | 91 字节接口目前只返回遥测，未响应电池命令 | 待补协议/官方驱动路径 |
-| Xbox 无线控制器 | `045E:0B12`（USB）/ BTHLE | 蓝牙 GATT 电量 | 当前 USB 连接，不走电量上报 |
-| UGREEN USB MIC-CM379 | `2B89:D82F` | USB 音频 + 麦克风，无电池 | 不显示 |
-| MOONDROP DAWN PRO2（USB 音频端点） | USB 音频 | 有线 DAC，无电池 | 不显示 |
+1.4.0 的渲染层改成了 Core Connection，旧的 `window.api.extensions.executeCommand` 不再注册 IPC，`host/` 里的侧边栏卡片补丁也不再适用。
 
-2.4G 外设是否可读取决于厂商协议。当前内置 Razer 协议；其它厂商需要按设备补充协议表。
+0.2.0 改用宿主原生能力：
 
-### Razer 键盘的读取方式
+- `titleBarButton`：标题栏新增“设备电量”按钮。
+- `contributes.experiences` + `launch: "panel"`：点击按钮打开原生插件面板。
+- `experience.request` → `plugin.request`：面板通过官方桥接调用 `powerpulse.overview`。
+- 设置面板与播放栏按钮保留。
 
-BlackWidow V4 Tenkeyless HyperSpeed 有三种 USB 身份：
-
-| 模式 | PID | 电池读取 |
-|---|---|---|
-| USB 有线 | `1532:02D5` | 不暴露电池命令；91 字节接口是遥测块，51/64 字节接口是按键统计 |
-| 2.4G 接收器 | `1532:02D7` | 91 字节接口仍只返回遥测，Razer 官方驱动 `RZCONTROL` 是后续路径 |
-| 蓝牙 | `02D6`（BLE HID） | Windows 通过 GATT 暴露电量，走内置蓝牙读取器 |
-
-有线或 2.4G 模式下目前都读不到这块键盘的电池；切到蓝牙后由 GATT 读取器处理。
+因此 **1.4.0 不需要修改 `app.asar`**。`host/` 只作为 1.3.x 的旧集成参考保留，不要在 1.4.0 上运行。
 
 ## 显示位置
 
-主入口是侧边栏底部的设备卡片（在“导入歌曲 / 编辑页面”上方）。1.3.1 的插件 API 没有侧边栏内嵌挂载点，这张卡片由仓库里的 `host/` 补丁注入；插件本身只提供数据与设置。
-
 | 入口 | 位置 | 命令 | 内容 |
 |---|---|---|---|
-| 侧边栏卡片 | 左侧导航底部（宿主补丁） | `powerpulse.overview` | 所有带电量设备的名称、进度条、百分比、充电标记 |
-| 设置面板 | 设置 → 插件设置 → PowerPulse 设备电量 | `powerpulse.overview` | 摘要 + 刷新间隔 / 显示本机 / 低电量阈值 / 提示开关 |
-| 播放栏按钮 | 底部播放栏 → 设备电量 | `powerpulse.toast` | 摘要写入“任务与通知”（标题栏铃铛）；低电量使用 warning 类别 |
+| 标题栏面板 | 标题栏星形按钮 → “设备电量” | `powerpulse.overview` | 设备列表、进度条、百分比、充电标记、低电量红色 |
+| 设置面板 | 设置 → 系统与关于 → PowerPulse 设备电量 | `powerpulse.overview` | 摘要 + 刷新间隔 / 显示本机 / 低电量阈值 |
+| 播放栏按钮 | 底部播放栏 → 设备电量 | `powerpulse.toast` | 摘要写入“任务与通知”；低电量使用 warning 类别 |
 
-不再注册独立的“设备电量”导航页；完整设备列表直接在侧边栏卡片中滚动显示。
+面板每 5 秒自动刷新，也可以点“刷新”。设置保存后，面板与设置页在 5 秒内同步。
 
-宿主补丁只改两个文件：
+## 安装
+
+1. 扩展中心 → 从文件安装。
+2. 选择 `com.sh1rotr1.powerpulse-0.2.0.tep`。
+3. 启用插件。
+4. 标题栏出现“设备电量”按钮；设置 → 系统与关于 → PowerPulse 设备电量 可改刷新间隔。
+
+插件运行位置：
 
 ```text
-out/renderer/index.html                 +1 行 <script type="module" src="./powerpulse-sidebar.js">
-out/renderer/powerpulse-sidebar.js      新增
+%APPDATA%\TwilightEcho\plugins\com.sh1rotr1.powerpulse\0.2.0\
 ```
 
-补丁脚本、安装器和还原命令在仓库的 `host/` 目录：
+插件数据：
 
-```powershell
-npm install
-# 安装（需先完全退出 Twilight Echo）
-node host/install-sidebar.mjs
-
-# 还原
-node host/install-sidebar.mjs --restore
+```text
+%APPDATA%\TwilightEcho\plugin-data\com.sh1rotr1.powerpulse\settings.json
 ```
-
-备份文件：`D:\TwilightEcho\resources\app.asar.powerpulse-sidebar-backup`。
-
-宿主补丁只用于本地集成参考；`.tep` 本身不包含 `host/`，安装 `.tep` 不会修改应用文件。
 
 ## 数据来源
 
 | 来源 | 读取方式 | 说明 |
 |---|---|---|
 | 本机电池 | `Win32_Battery` + `root\wmi BatteryStatus` | 百分比、充电/接电状态、剩余分钟数 |
-| Razer 2.4G 外设 | HID Feature Report，命令 class `0x07` / id `0x80`（电量）、`0x84`（充电） | 91 字节 Razer 协议；Viper V4 Pro 实测可用 |
+| Razer 2.4G 外设 | HID Feature Report，class `0x07` / id `0x80`（电量）、`0x84`（充电） | 91 字节 Razer 协议；Viper V4 Pro 实测可用 |
 | 蓝牙设备 | `SetupAPI` 读取 `DEVPKEY_Bluetooth_Battery` | 只读取设备主动上报的 GATT 电量 |
 
-- 蓝牙电量通过 `SetupDiGetDevicePropertyW` 直接读取，本机实测单次扫描约 7 ms；PowerShell 的 `Get-PnpDeviceProperty` 在同一台机器上单设备需要 1.7–8 秒，因此没有采用。
-- Razer 设备通过 `HidD_SetFeature` / `HidD_GetFeature` 直接发送 91 字节厂商报文；电量原始值 0–255 线性换算到 0–100。
-- 手机、平板通常不上报电量；2.4G 接收器外设是否可读取决于厂商协议。当前内置 Razer 协议，其它厂商需要按设备协议补充。
-- 参考实现：[2.4G-battery-viewer](https://github.com/yszyszysz233/2.4G-battery-viewer)（本插件借用了其“逐设备厂商报文”的思路，没有引入其依赖）。
+- 蓝牙读取用 `SetupDiGetDevicePropertyW`，单次扫描约 7 ms。
+- Razer 电量原始值 0–255 线性换算到 0–100。
+- 2.4G 外设是否可读取决于厂商协议；当前内置 Razer，其它厂商需要按设备补充。
+- 手机、平板通常不上报电量；USB 音频设备不显示。
+
+## 设备状态
+
+| 设备 | 连接 | 状态 |
+|---|---|---|
+| Razer Viper V4 Pro | `1532:00E6` | 已验证，电量与充电状态正常 |
+| Razer BlackWidow V4 Tenkeyless HyperSpeed | `1532:02D5` / `02D7` / BLE `02D6` | 蓝牙 GATT 正常；2.4G 需要接收器链路 |
+| Xbox 无线控制器 | USB / BTHLE | USB 下没有 GATT 电量 |
+| UGREEN MIC-CM379 | USB 音频 | 无电池 |
+| MOONDROP DAWN PRO2 | USB 音频 | 无电池 |
 
 ## 刷新与稳定性
 
-- 默认 10 秒，可在设置中选择 1 秒–5 分钟。
-- 插件在 utilityProcess 内启动一个常驻 Windows PowerShell 子进程，按间隔输出单行 JSON。
+- 默认 10 秒；设置里可选 1 秒–5 分钟。
+- 插件在 utilityProcess 里启动常驻 PowerShell 子进程，按间隔输出单行 JSON。
 - 子进程退出后按 1s → 2s → 5s → 15s → 30s 退避重启；`deactivate` 时终止。
-- 宿主 UI 命令超时为 5 秒；快照命令只读缓存，首次读取最多等待 4.2 秒。
-- 侧边栏卡片在数据间隔小于 5 秒时按设置刷新（最低 1 秒），否则最多每 5 秒检查一次设置与数据；保存设置后最多 5 秒同步到卡片。
-- 1.3.1 的 `ui.notify` 对 `info` / `warning` 走“任务与通知”记录，不弹浮动 toast；低电量时铃铛处会出现未读标记。
+- 宿主 UI 命令超时 5 秒；快照命令只读缓存，首次读取最多等待 4.2 秒。
+- 标题栏面板通过 `plugin.request` 调用插件，`network` 权限是体验桥的 `plugin.request` 要求。
+- `ui.notify` 的 `info` / `warning` 走“任务与通知”，低电量时铃铛出现未读标记。
 
-## 安装（本地）
-
-1. 在扩展中心 → 从文件安装，选择 Release 里的 `com.sh1rotr1.powerpulse-0.1.1.tep`。
-2. 启用插件。
-3. 侧边栏卡片是宿主补丁，按上一节的 `host/` 步骤安装；不安装补丁时仍可使用设置面板与播放栏按钮。
-4. 设置 → 插件设置 → PowerPulse 设备电量。
-
-插件运行位置：
+## 目录
 
 ```text
-%APPDATA%\TwilightEcho\plugins\com.sh1rotr1.powerpulse\0.1.0\
+plugin.json                 清单与 experiences 声明
+index.mjs                   入口
+lib/create-plugin.mjs       设置面板、标题栏按钮、播放栏、experience 请求
+lib/collector.mjs           PowerShell 子进程管理
+lib/pp-collect.ps1          系统电池 / 蓝牙 / Razer 采集
+lib/format.mjs              摘要与列表格式
+ui/panel.html               标题栏面板
+ui/panel.css
+ui/panel.js                 体验桥 handshake 与设备列表
+host/                       1.3.x 侧边栏补丁（legacy，不进入 .tep）
+docs/                       架构、适配、发布说明
 ```
-
-插件数据（仅 `context.settings`）：
-
-```text
-%APPDATA%\TwilightEcho\plugin-data\com.sh1rotr1.powerpulse\settings.json
-```
-
-存储的是 `{ schemaVersion: 1, intervalSec, showSystem, lowThreshold, toastSummary }`；旧版本缺少 `schemaVersion` 时按同一套规则归一化，不会丢字段。
 
 ## 开发
 
 ```powershell
 npm install
-npm test                  # 单元测试
-npm run build:tep         # 用官方 CLI 打包到 dist/
-node test/integration.mjs # 真实 PowerShell 单次采集
-node test/loop-check.mjs  # 连续采集 + 子进程退出检查
+npm test
+npm run build:tep
+node test/integration.mjs
+node test/loop-check.mjs
 ```
 
 打包需要官方 `create-twilight-plugin` CLI：把 `Twilight_Echo` 克隆到仓库旁边，或设置 `TE_CLI` 指向 CLI 路径。
 
 ## 已知边界
 
-- 仅支持 Windows；其他平台激活后显示“当前系统不支持设备电量读取”。
-- 蓝牙设备电量依赖驱动与设备上报；没有上报的设备不会显示。
-- 2.4G 外设目前只内置 Razer 协议；Razer 键盘在 USB/2.4G 下的 91 字节接口仍只返回遥测，正在补官方驱动路径。
-- 侧边栏卡片依赖 `host/` 补丁；只安装 `.tep` 时使用设置面板与播放栏按钮。
-- 其它厂商（ATK/VXE、Endgame、VAXEE、Nordic、杰理方案耳机等）需要单独补充协议；参考 [2.4G-battery-viewer](https://github.com/yszyszysz233/2.4G-battery-viewer) 的逐设备方法。
-- 应用升级或插件更新后需要重新检查 `plugin.json`、UI 扩展点和命令返回结构。
-- 不申请 `network`、`filesystem:*`、`player:*`；不写入插件目录以外的文件。
+- 仅 Windows。
+- 1.4.0 使用原生标题栏面板；1.3.x 的侧边栏卡片需要 `host/` 补丁，且没有标题栏面板。
+- 2.4G 外设目前只内置 Razer；Razer 键盘在蓝牙模式下由 GATT 读取。
+- 只安装 `.tep` 不会修改应用文件。
+
+## 许可
+
+MIT。

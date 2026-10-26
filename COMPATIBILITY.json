@@ -1,26 +1,37 @@
 {
   "plugin": {
     "id": "com.sh1rotr1.powerpulse",
-    "version": "0.1.1",
-    "apiVersion": 3
+    "version": "0.2.0",
+    "apiVersion": 4
   },
   "host": {
-    "tested": ["1.3.1-preview"],
-    "requestedRange": ">=1.3.0",
+    "tested": ["1.4.0-perview"],
+    "requestedRange": ">=1.4.0-perview",
     "platform": "win32"
   },
-  "permissions": ["settings", "ui:inject"],
+  "permissions": ["settings", "ui:inject", "network"],
   "surfaces": {
-    "settingsPanel": { "id": "powerpulse-settings", "command": "powerpulse.overview" },
-    "playerBarButton": { "id": "powerpulse-bar", "command": "powerpulse.toast" },
-    "sidebarWidget": {
-      "id": "te-powerpulse-sidebar",
-      "hostPatch": true,
-      "files": ["out/renderer/index.html", "out/renderer/powerpulse-sidebar.js"],
-      "anchor": ".side-menu > #te-powerpulse-sidebar (before .menu-bottom)"
+    "titleBarButton": {
+      "id": "powerpulse-titlebar",
+      "title": "设备电量",
+      "opens": "experience:powerpulse-panel"
+    },
+    "experiencePanel": {
+      "id": "powerpulse-panel",
+      "entry": "ui/panel.html",
+      "bridgeVersion": 2,
+      "launch": "panel"
+    },
+    "settingsPanel": {
+      "id": "powerpulse-settings",
+      "command": "powerpulse.overview"
+    },
+    "playerBarButton": {
+      "id": "powerpulse-bar",
+      "command": "powerpulse.toast"
     }
   },
-  "notAvailableInHost": ["titleBar", "desktopLyrics", "miniPlayer"],
+  "notAvailableInHost": ["desktopLyricsWidget", "miniPlayerWidget"],
   "dataSources": [
     {
       "id": "system-battery",
@@ -30,7 +41,7 @@
     {
       "id": "bluetooth-battery",
       "api": "SetupAPI / DEVPKEY_Bluetooth_Battery {104EA319-6EE2-4701-BD47-8DDBF425BBE5} 2",
-      "verified": "reader runs in ~7 ms; no local device currently reports a level"
+      "verified": "reader runs in ~7 ms"
     },
     {
       "id": "razer-wireless-battery",
@@ -38,44 +49,12 @@
       "verified": "Razer Viper V4 Pro (1532:00E6) returns level and charging state"
     }
   ],
-  "detectedDevices": [
-    {
-      "name": "Razer Viper V4 Pro",
-      "ids": "1532:00E6",
-      "reader": "razer",
-      "result": "verified (level + charging)"
-    },
-    {
-      "name": "Razer BlackWidow V4 Tenkeyless HyperSpeed",
-      "ids": "1532:02D5 (wired) / 1532:02D7 (2.4G) / BLE 02D6",
-      "reader": "razer / bluetooth",
-      "result": "wired mode exposes only telemetry; battery needs 2.4G receiver or Bluetooth"
-    },
-    {
-      "name": "Xbox Wireless Controller",
-      "ids": "045E:0B12 / BTHLE",
-      "reader": "bluetooth",
-      "result": "connected via USB, no GATT battery level"
-    },
-    {
-      "name": "UGREEN USB MIC-CM379",
-      "ids": "2B89:D82F",
-      "reader": "none",
-      "result": "USB audio/mic, no battery"
-    },
-    {
-      "name": "MOONDROP DAWN PRO2 (USB audio endpoint)",
-      "ids": "USB audio",
-      "reader": "none",
-      "result": "wired DAC, no battery"
-    }
-  ],
   "notes": [
-    "Host UI contributions are limited to sidebarPage, playerBarButton, settingsPanel, localSidebarItem, streamingHome.",
-    "Plugin host UI command timeout is 5s; the snapshot command only reads the cache and waits at most 4.2s.",
-    "Host executeUiCommand dispatches only commands declared by a UI contribution, so the settings form reuses powerpulse.overview for submit.",
-    "In 1.3.1 ui.notify routes info/warning notices to the task/notification center; only error or action notices become floating toasts.",
-    "The plugin never writes outside context.storagePath."
+    "1.4.0 renderer moved to Core Connection; legacy window.api.extensions.executeCommand is no longer registered.",
+    "Title bar button opens the panel experience declared in plugin.json contributes.experiences.",
+    "The experience bridge maps plugin.request to the network permission.",
+    "The title bar panel refreshes every 5 seconds and reuses powerpulse.overview.",
+    "host/ is a legacy 1.3.x sidebar patch and is excluded from the .tep."
   ],
-  "checkedAt": "2026-10-20"
+  "checkedAt": "2026-10-26"
 }
