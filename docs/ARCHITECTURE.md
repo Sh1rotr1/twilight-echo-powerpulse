@@ -11,14 +11,15 @@
 
 | 类型 | id | 行为 |
 |---|---|---|
+| sidebar widget | `te-powerpulse-sidebar` | 宿主补丁注入左侧导航底部，复用 `window.__teExecuteCoreExtension` |
 | `titleBarButton` | `powerpulse-titlebar` | 标题栏“设备电量”按钮，点击打开 `powerpulse-panel` |
 | experience panel | `powerpulse-panel` | `ui/panel.html`，`bridgeVersion: 2`，`launch: "panel"` |
 | `settingsPanel` | `powerpulse-settings` | 设置 → 系统与关于，表单命令 `powerpulse.overview` |
 | `playerBarButton` | `powerpulse-bar` | 播放栏按钮，命令 `powerpulse.toast` |
 
-1.4.0 的渲染层使用 Core Connection，旧的 `window.api.extensions.executeCommand` 不再注册 IPC；因此 0.2.0 不再依赖渲染层注入。
+1.4.0 没有侧边栏内嵌小组件扩展点。标题栏面板走原生 API；侧边栏卡片由 `host/` 补丁实现，补丁把应用自己的 `executeCoreExtension` 暴露为 `window.__teExecuteCoreExtension`，卡片复用同一个 Core 连接。
 
-`host/` 里的侧边栏卡片是 1.3.x 的旧方案，不进入 `.tep`。
+`host/` 不进入 `.tep`。
 
 ## 标题栏面板桥接
 
@@ -30,6 +31,13 @@
 6. 插件返回 `buildForm(snapshot)`；面板渲染 `devices` / `config`。
 
 `plugin.request` 在体验桥里映射到 `network` 权限，所以 `plugin.json` 声明了 `network`。
+
+## 侧边栏补丁
+
+1. `index.html` 注入 `powerpulse-sidebar.js`。
+2. 主渲染 bundle 中 `const executeCoreExtension = ...` 改为同时赋值 `window.__teExecuteCoreExtension`。
+3. 卡片等待该函数出现，调用 `executeCoreExtension('powerpulse.overview', [{ source: 'sidebar' }])`。
+4. 这条路径使用应用自己的 Core 连接，不创建第二个连接，也不需要旧的 preload IPC。
 
 ## 数据流
 
@@ -70,5 +78,5 @@ lib/config.mjs
 ui/panel.html
 ui/panel.css
 ui/panel.js
-host/                 1.3.x legacy
+host/                 1.4.0 侧边栏补丁
 ```

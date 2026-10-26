@@ -11,33 +11,56 @@ Twilight Echo 插件：读取本机电池、Razer 2.4G 无线外设与蓝牙设�
 
 ## 1.4.0 适配
 
-1.4.0 的渲染层改成了 Core Connection，旧的 `window.api.extensions.executeCommand` 不再注册 IPC，`host/` 里的侧边栏卡片补丁也不再适用。
+1.4.0 的渲染层改成了 Core Connection，旧的 `window.api.extensions.executeCommand` 不再注册 IPC；插件 API 仍然没有“侧边栏内嵌小组件”扩展点，`sidebarPage` / `localSidebarItem` 只会生成导航项或页面，`titleBarButton` 打开的是标题栏弹出面板。
 
-0.2.0 改用宿主原生能力：
+所以位置分两种：
 
-- `titleBarButton`：标题栏新增“设备电量”按钮。
-- `contributes.experiences` + `launch: "panel"`：点击按钮打开原生插件面板。
-- `experience.request` → `plugin.request`：面板通过官方桥接调用 `powerpulse.overview`。
-- 设置面板与播放栏按钮保留。
+- **不修改 `app.asar`**：标题栏按钮 + 原生面板可用。
+- **保留侧边栏底部卡片**：需要 `host/` 补丁。补丁把渲染层自己的 `executeCoreExtension` 暴露为 `window.__teExecuteCoreExtension`，侧边栏卡片复用它调用 `powerpulse.overview`，不创建第二个 Core 连接，也不依赖旧 IPC。
 
-因此 **1.4.0 不需要修改 `app.asar`**。`host/` 只作为 1.3.x 的旧集成参考保留，不要在 1.4.0 上运行。
+补丁点：
+
+```text
+out/renderer/index.html                  +1 行侧边栏脚本
+out/renderer/assets/index-*.js           +window.__teExecuteCoreExtension
+out/renderer/powerpulse-sidebar.js       新增卡片脚本
+```
 
 ## 显示位置
 
 | 入口 | 位置 | 命令 | 内容 |
 |---|---|---|---|
-| 标题栏面板 | 标题栏星形按钮 → “设备电量” | `powerpulse.overview` | 设备列表、进度条、百分比、充电标记、低电量红色 |
+| 侧边栏卡片 | 左侧导航底部，“导入歌曲”上方（宿主补丁） | `powerpulse.overview` | 设备列表、进度条、百分比、充电标记、低电量红色 |
+| 标题栏面板 | 标题栏星形按钮 → “设备电量”（原生） | `powerpulse.overview` | 同一份设备数据，5 秒刷新 |
 | 设置面板 | 设置 → 系统与关于 → PowerPulse 设备电量 | `powerpulse.overview` | 摘要 + 刷新间隔 / 显示本机 / 低电量阈值 |
 | 播放栏按钮 | 底部播放栏 → 设备电量 | `powerpulse.toast` | 摘要写入“任务与通知”；低电量使用 warning 类别 |
 
-面板每 5 秒自动刷新，也可以点“刷新”。设置保存后，面板与设置页在 5 秒内同步。
+侧边栏卡片每 5 秒检查一次设置与数据；保存设置后 5 秒内同步。标题栏面板同样 5 秒刷新。
 
 ## 安装
 
 1. 扩展中心 → 从文件安装。
 2. 选择 `com.sh1rotr1.powerpulse-0.2.0.tep`。
 3. 启用插件。
-4. 标题栏出现“设备电量”按钮；设置 → 系统与关于 → PowerPulse 设备电量 可改刷新间隔。
+4. 需要侧边栏卡片时，完全退出 Twilight Echo，运行：
+
+```powershell
+cd E:\DSHworks\te-powerpulse
+npm install
+node host/install-sidebar.mjs
+```
+
+5. 重新启动。标题栏出现“设备电量”按钮，左侧导航底部出现设备卡片。
+
+只安装 `.tep`、不打补丁时，标题栏面板、设置面板、播放栏按钮仍可用。
+
+还原宿主：
+
+```powershell
+node host/install-sidebar.mjs --restore
+```
+
+备份：`D:\TwilightEcho\resources\app.asar.powerpulse-sidebar-backup`。
 
 插件运行位置：
 
@@ -95,7 +118,7 @@ lib/format.mjs              摘要与列表格式
 ui/panel.html               标题栏面板
 ui/panel.css
 ui/panel.js                 体验桥 handshake 与设备列表
-host/                       1.3.x 侧边栏补丁（legacy，不进入 .tep）
+host/                       1.4.0 侧边栏补丁（不进入 .tep）
 docs/                       架构、适配、发布说明
 ```
 
@@ -114,7 +137,8 @@ node test/loop-check.mjs
 ## 已知边界
 
 - 仅 Windows。
-- 1.4.0 使用原生标题栏面板；1.3.x 的侧边栏卡片需要 `host/` 补丁，且没有标题栏面板。
+- 1.4.0 的侧边栏底部卡片需要 `host/` 补丁；不打补丁时使用标题栏面板。
+- 应用更新会替换 `app.asar`，升级后需重新运行 `host/install-sidebar.mjs`。
 - 2.4G 外设目前只内置 Razer；Razer 键盘在蓝牙模式下由 GATT 读取。
 - 只安装 `.tep` 不会修改应用文件。
 

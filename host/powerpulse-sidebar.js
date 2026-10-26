@@ -133,18 +133,32 @@ function render(payload) {
   }
 }
 
+function executeOverview() {
+  const core = window.__teExecuteCoreExtension
+  if (typeof core === 'function') {
+    return core(COMMAND, [{ source: 'sidebar' }])
+  }
+  const legacy = window.api?.extensions?.executeCommand
+  if (typeof legacy === 'function') {
+    return legacy(COMMAND, [{ source: 'sidebar' }])
+  }
+  return Promise.reject(new Error('正在连接核心…'))
+}
+
 async function refresh() {
   if (refreshing || !card || !card.isConnected || !shadow) return
-  const api = window.api?.extensions
-  if (!api || typeof api.executeCommand !== 'function') return
   refreshing = true
   const head = shadow?.querySelector('.head')
   head?.classList.add('spinning')
   try {
-    const result = await api.executeCommand(COMMAND, [{ source: 'sidebar' }])
+    const result = await executeOverview()
     render(result)
-  } catch {
-    render({ devices: [], config: { intervalSec: 10 }, unavailable: true })
+  } catch (error) {
+    render({
+      devices: [],
+      config: { intervalSec: 10 },
+      error: error instanceof Error ? error.message : '正在连接核心…'
+    })
   } finally {
     refreshing = false
     setTimeout(() => head?.classList.remove('spinning'), 700)
@@ -227,6 +241,16 @@ function boot() {
   })
   bootObserver.observe(document.documentElement, { childList: true, subtree: true })
   ensureCard()
+  const bridgeWait = setInterval(() => {
+    if (
+      typeof window.__teExecuteCoreExtension === 'function' ||
+      typeof window.api?.extensions?.executeCommand === 'function'
+    ) {
+      clearInterval(bridgeWait)
+      void refresh()
+    }
+  }, 700)
+  setTimeout(() => clearInterval(bridgeWait), 20000)
   window.addEventListener('focus', () => void refresh())
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) void refresh()

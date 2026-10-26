@@ -139,6 +139,7 @@
     if (event.data?.type !== 'twilight-experience-connect') return
     const next = event.ports?.[0]
     if (!next) return
+    if (port) return
     port = next
     if (readyTimer) {
       clearInterval(readyTimer)

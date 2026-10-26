@@ -56,8 +56,25 @@ try {
   if (!fs.existsSync(indexPath)) fail('app.asar 内没有 out/renderer/index.html，版本不匹配')
 
   let html = fs.readFileSync(indexPath, 'utf8')
-  const alreadyPatched = html.includes(SCRIPT_NAME)
-  if (!alreadyPatched) {
+  const scriptTagPresent = html.includes(SCRIPT_NAME)
+  const bundleMatch = html.match(/src="\.\/assets\/(index-[^"]+\.js)"/)
+  if (!bundleMatch) fail('index.html 中找不到主渲染 bundle')
+  const bundleRel = bundleMatch[1]
+  const bundlePath = path.join(extractDir, RENDERER_DIR, 'assets', bundleRel)
+  if (!fs.existsSync(bundlePath)) fail(`找不到主渲染 bundle：${bundleRel}`)
+
+  const GLOBAL_NAME = 'window.__teExecuteCoreExtension'
+  const marker = 'const executeCoreExtension = '
+  let bundle = fs.readFileSync(bundlePath, 'utf8')
+  const globalPresent = bundle.includes(GLOBAL_NAME)
+  if (!globalPresent) {
+    if (!bundle.includes(marker)) fail('主 bundle 中没有 executeCoreExtension，版本不匹配')
+    bundle = bundle.replace(marker, `const executeCoreExtension = ${GLOBAL_NAME} = `)
+    fs.writeFileSync(bundlePath, bundle, 'utf8')
+  }
+
+  const alreadyPatched = scriptTagPresent && globalPresent
+  if (!scriptTagPresent) {
     if (!html.includes('</body>')) fail('index.html 结构异常：没有 </body>')
     html = html.replace('</body>', `  ${SCRIPT_TAG}\n</body>`)
     fs.writeFileSync(indexPath, html, 'utf8')
@@ -70,10 +87,13 @@ try {
   if (!entries.includes(`${RENDERER_DIR}/${SCRIPT_NAME}`)) fail('打包校验失败：缺少侧边栏脚本')
   const checkHtml = asar.extractFile(repackedPath, path.join(RENDERER_DIR, 'index.html')).toString('utf8')
   if (!checkHtml.includes(SCRIPT_NAME)) fail('打包校验失败：index.html 未注入脚本')
+  const checkBundle = asar.extractFile(repackedPath, path.join(RENDERER_DIR, 'assets', bundleRel)).toString('utf8')
+  if (!checkBundle.includes(GLOBAL_NAME)) fail('打包校验失败：主 bundle 未暴露核心执行器')
 
   console.log('[PowerPulse] 补丁内容校验通过：')
   console.log(`  + ${RENDERER_DIR}/${SCRIPT_NAME}`)
   console.log(`  ~ ${RENDERER_DIR}/index.html (+1 script tag)`)
+  console.log(`  ~ ${RENDERER_DIR}/assets/${bundleRel} (+${GLOBAL_NAME})`)
   console.log(`  补丁状态：${alreadyPatched ? '已安装（将刷新脚本）' : '未安装（将新增）'}`)
 
   if (DRY_RUN) {

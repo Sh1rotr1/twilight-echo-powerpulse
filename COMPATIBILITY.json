@@ -11,6 +11,17 @@
   },
   "permissions": ["settings", "ui:inject", "network"],
   "surfaces": {
+    "sidebarWidget": {
+      "id": "te-powerpulse-sidebar",
+      "hostPatch": true,
+      "files": [
+        "out/renderer/index.html",
+        "out/renderer/assets/index-*.js",
+        "out/renderer/powerpulse-sidebar.js"
+      ],
+      "anchor": ".side-menu > #te-powerpulse-sidebar (before .menu-bottom)",
+      "bridge": "window.__teExecuteCoreExtension"
+    },
     "titleBarButton": {
       "id": "powerpulse-titlebar",
       "title": "设备电量",
@@ -50,11 +61,12 @@
     }
   ],
   "notes": [
-    "1.4.0 renderer moved to Core Connection; legacy window.api.extensions.executeCommand is no longer registered.",
-    "Title bar button opens the panel experience declared in plugin.json contributes.experiences.",
+    "1.4.0 has no inline sidebar widget extension point; sidebarPage/localSidebarItem are navigation entries, titleBarButton opens a panel.",
+    "The host patch exposes the renderer's executeCoreExtension as window.__teExecuteCoreExtension so the injected card reuses the app's own Core connection.",
+    "The host patch does not create a second Core connection and does not use the removed window.api.extensions.executeCommand IPC.",
+    "App updates replace app.asar and require rerunning host/install-sidebar.mjs.",
     "The experience bridge maps plugin.request to the network permission.",
-    "The title bar panel refreshes every 5 seconds and reuses powerpulse.overview.",
-    "host/ is a legacy 1.3.x sidebar patch and is excluded from the .tep."
+    "host/ is excluded from the .tep."
   ],
   "checkedAt": "2026-10-26"
 }
