@@ -147,6 +147,7 @@ function executeOverview() {
 
 async function refresh() {
   if (refreshing || !card || !card.isConnected || !shadow) return
+  if (document.querySelector('.experience-flyout')) return
   refreshing = true
   const head = shadow?.querySelector('.head')
   head?.classList.add('spinning')

@@ -139,8 +139,20 @@
     if (event.data?.type !== 'twilight-experience-connect') return
     const next = event.ports?.[0]
     if (!next) return
-    if (port) return
+    if (port) {
+      try {
+        port.close()
+      } catch {}
+      for (const item of pending.values()) {
+        item.reject(new Error('面板已重连'))
+      }
+      pending.clear()
+    }
     port = next
+    if (retryTimer) {
+      clearTimeout(retryTimer)
+      retryTimer = null
+    }
     if (readyTimer) {
       clearInterval(readyTimer)
       readyTimer = null
