@@ -2,9 +2,11 @@ name: build-tep
 
 on:
   workflow_dispatch:
+  push:
+    tags: ['v*']
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -35,3 +37,22 @@ jobs:
           name: te-powerpulse
           path: dist/*.tep
           if-no-files-found: error
+
+      - name: Locate release notes
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: notes
+        run: |
+          path="docs/releases/${GITHUB_REF_NAME}.md"
+          if [ ! -f "$path" ]; then
+            echo "Missing release notes: $path" >&2
+            exit 1
+          fi
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.tep
+          body_path: ${{ steps.notes.outputs.path }}
+          overwrite_files: true
